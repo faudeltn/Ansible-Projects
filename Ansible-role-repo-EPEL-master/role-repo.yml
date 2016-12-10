@@ -1,0 +1,7 @@
+---
+- hosts: all
+  sudo: yes
+  gather_facts: yes
+  remote_user: ansadm
+  roles:
+    - epel-repository
