@@ -1,0 +1,58 @@
+---
+## This playbook installs and configures AD authentication
+
+- name: Install and configure AD authentication
+  hosts: all
+  gather_facts: no
+  become: yes
+  become_method: sudo
+  vars_prompt:
+    - name: "bind_password"
+      prompt: "Password for administrator@yallalabs.local"
+      private: yes
+
+  tasks:
+    - name: Install the required packages
+      yum:
+        name: realmd,sssd,oddjob,oddjob-mkhomedir,adcli,samba-common,samba-common-tools,ntpdate,ntp,python-pip
+        state: present
+      notify:
+        - restart realmd
+
+    - name: Install pexpect using pip
+      pip:
+        name: pexpect
+
+    - name: Join system to AD and add the computer object in the Linux OU
+      expect:
+        command: /bin/bash -c "/usr/sbin/realm join --user=ADMINISTRATOR@yallalabs.local --computer-ou=OU=Linux,OU=Servers,DC=YALLALABS,DC=LOCAL yallalabs.local"
+        responses:
+          Password for *: "{{ bind_password }}"
+
+    - name: Add default_domain_suffix to sssd.conf
+      lineinfile:
+        dest: /etc/sssd/sssd.conf
+        line: 'default_domain_suffix = yallalabs.local'
+        insertafter: '^\[sssd\]'
+      notify:
+        - restart sssd
+
+    - name: Allow the LinuxAdmins AD group to logon to the system
+      command: /bin/bash -c "/usr/sbin/realm permit -g LinuxAdmins@yallalabs.local"
+
+    - name: Add the LinuxAdmins AD Group to sudoers
+      lineinfile:
+        dest: /etc/sudoers
+        line: '%LinuxAdmins@yallalabs.local        ALL=(ALL)       ALL'
+        insertafter: '^%wheel'
+
+  handlers:
+    - name: restart realmd
+      service:
+        name: realmd
+        state: restarted
+
+    - name: restart sssd
+      service:
+        name: sssd
+        state: restarted
