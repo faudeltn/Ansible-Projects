@@ -1,2 +1,6 @@
 This playbook installs and configures AD authentication
-ansible-playbook -i inventory.ini join-domain.yml
+
+Run the following commnad:
+```
+# ansible-playbook -i inventory.ini join-domain.yml
+```
