@@ -1,0 +1,33 @@
+---
+
+# Zabbix Repository Variables
+zabbix_version: 3.4
+
+# Zabbix Server Configuration
+zabbix_server_ip: 192.168.1.151 # Zabbix Server IP
+zabbix_active_server_ip: 192.168.1.151 # Zabbix Active Server IP
+zabbix_agent_ip: "{{ ansible_default_ipv4.address }}" # Zabbix Agent IP
+
+
+# Zabbix API Variables
+zabbix_url: "http://192.168.1.151/zabbix" # Zabbix URL 
+zabbix_api_user: Admin # Zabbix API User
+zabbix_api_pass: zabbix # Zabbix API Password
+zabbix_agent_hostname: "{{ ansible_nodename }}" # Zabbix Agent Hostname Node 
+zabbix_host_groups:
+  - Linux Production Servers
+zabbix_link_templates:
+   - Template OS Linux
+zabbix_create_host: present       # or absent
+zabbix_update_host: yes           # or no
+zabbix_host_status: enabled       # or disabled
+zabbix_proxy: null                    # or Zabbix Proxy Name
+zabbix_inventory_mode: disabled   # automatic or manual
+zabbix_useuip: 1
+zabbix_agent_interfaces:
+  - type: 1
+    main: 1
+    useip: "{{ zabbix_useuip }}"
+    ip: "{{ zabbix_agent_ip }}"
+    dns: ""
+    port: "{{ zabbix_agent_listenport }}"

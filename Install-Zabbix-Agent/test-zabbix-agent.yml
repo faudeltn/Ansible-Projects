@@ -1,0 +1,6 @@
+---
+- hosts: Centos7
+  become: yes
+  become_method: sudo
+  roles:
+    - Zabbix-Agent

@@ -1,0 +1,19 @@
+---
+
+- name: Create a new host or update an existing host
+  local_action:
+    module: zabbix_host
+    server_url: "{{ zabbix_url }}"
+    login_user: "{{ zabbix_api_user }}"
+    login_password: "{{ zabbix_api_pass }}"
+    host_name: "{{ zabbix_agent_hostname }}"
+    host_groups: "{{ zabbix_host_groups }}"
+    link_templates: "{{ zabbix_link_templates }}"
+    status: "{{ zabbix_host_status }}"
+    state: "{{ zabbix_create_host }}"
+    force: "{{ zabbix_update_host }}"
+    proxy: "{{ zabbix_proxy }}"
+    inventory_mode: "{{ zabbix_inventory_mode }}"
+    interfaces: "{{ zabbix_agent_interfaces }}"
+    visible_name: "{{ zabbix_visible_hostname|default(zabbix_agent_hostname) }}" 
+  tags: api
