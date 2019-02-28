@@ -1,0 +1,65 @@
+---
+# Playbook to Create a control user account for ansible in remote hosts & secure and harden SSH Based-Authentication
+#
+# ansible-playbook -i inventory playbook-add-ssh-user.yml --extra-vars "ssh_user=anibleadm remote_password=HASHED_PASSWORD" --ask-pass
+- hosts: all
+  #vars:
+  #  - remote_password: 'HASHED_PASSWORD'
+  #  - ssh_user: ansibleadm
+  gather_facts: no
+  remote_user: root
+
+  tasks:
+
+  - name: 1. Add SSH User 
+    user:
+         name={{ ssh_user }}
+         password={{ remote_password }}
+  
+  - name: 2. Change Expire Password Account to never
+    command: chage -E -1 {{ ssh_user }}
+         
+  - name: 3. Add remote SSH user to sudoers
+    lineinfile:
+         "dest=/etc/sudoers
+         regexp='^remote ALL'
+         line='{{ ssh_user }} ALL=(ALL) NOPASSWD: ALL'
+         state=present"
+
+  - name: 4. install ssh key
+    authorized_key: user={{ ssh_user }} 
+                    key="{{ lookup('file', '/home/{{ ssh_user }}/.ssh/id_rsa.pub') }}" 
+                    state=present
+
+  - name: 5. Disallow root SSH access
+    lineinfile:
+         dest=/etc/ssh/sshd_config
+         regexp="^PermitRootLogin"
+         line="PermitRootLogin no"
+         state=present
+    notify:
+      - restart sshd
+ 
+  - name: 6. Disallow SSH password authentication
+    lineinfile:
+         dest=/etc/ssh/sshd_config
+         regexp="^PasswordAuthentication"
+         line="PasswordAuthentication no"
+         state=present
+    notify:
+      - restart sshd
+
+  - name: 7. Disallow SSH GSS API authentication
+    lineinfile:
+         dest=/etc/ssh/sshd_config
+         regexp="^GSSAPIAuthentication"
+         line="GSSAPIAuthentication no"
+         state=present
+    notify:
+      - restart sshd    
+
+  handlers:
+  - name: restart sshd
+    service: 
+         name=sshd
+         state=restarted          
