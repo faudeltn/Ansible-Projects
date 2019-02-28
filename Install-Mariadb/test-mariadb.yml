@@ -1,0 +1,9 @@
+---
+-  hosts: all
+   become: yes
+   become_method: sudo
+   vars:
+    mariadb_version: '10.3'
+    mariadb_root_password: 'Passw0rd'
+   roles:
+    - Mariadb

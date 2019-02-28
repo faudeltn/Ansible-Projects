@@ -1,0 +1,5 @@
+---
+
+- include_tasks: install.yml
+- include_tasks: mysql_secure_installation.yml
+- include_tasks: configure.yml

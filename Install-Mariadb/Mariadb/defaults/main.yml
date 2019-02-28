@@ -1,0 +1,4 @@
+---
+# Server configuration (server.cnf)
+mariadb_port: 3306
+

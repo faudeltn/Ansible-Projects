@@ -1,0 +1,13 @@
+---
+
+# Modify configuration file to listen on all interfaces
+
+- name: RedHat | Modify configuration file to listen on all interfaces
+  lineinfile: dest=/etc/my.cnf.d/server.cnf regexp="^bind-address" line="bind-address=0.0.0.0"
+  when: ansible_os_family == "RedHat"
+  notify: restart mariadb
+
+- name: Ubuntu | Modify configuration file to listen on all interfaces
+  lineinfile: dest=/etc/mysql/my.cnf regexp="^bind-address" line="bind-address=0.0.0.0"
+  when: ansible_distribution == "Ubuntu"
+  notify: restart mariadb
