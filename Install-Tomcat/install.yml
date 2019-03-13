@@ -1,0 +1,71 @@
+---
+- hosts: all
+  gather_facts: yes
+  become: yes
+  become_method: sudo
+  vars:
+   rhel_java_packages:
+    - java-1.8.0-openjdk-devel.x86_64
+    - java-1.8.0-openjdk.x86_64
+
+  tasks:
+
+  - name: check if firewalld is running
+    command: systemctl is-active firewalld
+    register: firewalld_result
+    changed_when: False
+    ignore_errors: True  # rc is 3 when firewalld is stopped
+
+  - name: 1. Yum install Openjdk
+    yum:
+      name: '{{ rhel_java_packages }}'
+      state: installed
+
+  - name: 2. Add Ansible user tomcat
+    user:
+      name: tomcat
+      createhome: yes
+      home: /opt/tomcat
+      shell: /bin/nologin
+
+  - name: 3. Download & Unarchive Tomcat
+    unarchive:
+      src: http://ftp.wayne.edu/apache/tomcat/tomcat-9/v9.0.16/bin/apache-tomcat-9.0.16.tar.gz
+      dest: /opt/tomcat
+      remote_src: yes
+      extra_opts: [--strip-components=1]
+
+  - name: 4. Change ownership
+    file:
+      path: /opt/tomcat
+      owner: tomcat
+      group: tomcat
+      recurse: yes
+      state: directory
+
+  - name: 5. Copy Tomcat service from local to remote
+    copy:
+      src: tomcat.service
+      dest: /etc/systemd/system/
+      mode: 0755
+
+  - name: 6. Start and enable Tomcat service
+    systemd:
+      name: tomcat
+      state: started
+      enabled: true
+      daemon_reload: true
+
+  - name: 6. Firewall setting
+    firewalld:
+      port: 8080/tcp
+      permanent: yes
+      state: enabled
+    notify: reload firewalld
+    when: firewalld_result.stdout == "active"
+
+  handlers:
+    - name: reload firewalld
+      service:
+        name: firewalld
+        state: restarted
