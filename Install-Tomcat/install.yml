@@ -7,19 +7,39 @@
    rhel_java_packages:
     - java-1.8.0-openjdk-devel.x86_64
     - java-1.8.0-openjdk.x86_64
-
+   ubuntu_java_packages:
+    - openjdk-8-jdk
   tasks:
 
-  - name: check if firewalld is running
+  - name: 0. RedHat | Check if firewalld is running
     command: systemctl is-active firewalld
     register: firewalld_result
     changed_when: False
     ignore_errors: True  # rc is 3 when firewalld is stopped
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
+    tags: firewalld_status
 
-  - name: 1. Yum install Openjdk
+  - name: 0. Ubuntu | Check if ufw is running
+    command: systemctl is-active ufw
+    register: ufw_result
+    changed_when: False
+    ignore_errors: True  # rc is 3 when ufw is stopped
+    when: ansible_distribution == "Ubuntu"
+    tags: ufw_status
+
+  - name: 1. RedHat | Yum install Openjdk
     yum:
       name: '{{ rhel_java_packages }}'
       state: installed
+    when: ansible_os_family == "RedHat"
+    tags: openjdk_rhel
+
+  - name: 1. Ubuntu | Yum install Openjdk
+    apt:
+      name: '{{ ubuntu_java_packages }}'
+      state: present
+    when: ansible_distribution == "Ubuntu"
+    tags: openjdk_ubuntu
 
   - name: 2. Add Ansible user tomcat
     user:
@@ -56,16 +76,17 @@
       enabled: true
       daemon_reload: true
 
-  - name: 6. Firewall setting
+  - name: 7. RedHat | Allow all access to tcp port 8080
     firewalld:
       port: 8080/tcp
       permanent: yes
       state: enabled
-    notify: reload firewalld
-    when: firewalld_result.stdout == "active"
+      immediate: yes
+    when: ansible_os_family == "RedHat" and firewalld_result.stdout == "active"
 
-  handlers:
-    - name: reload firewalld
-      service:
-        name: firewalld
-        state: restarted
+  - name: Ubuntu | Allow all access to tcp port 8080
+    ufw:
+      rule: allow
+      port: 8080
+      proto: tcp
+    when: ansible_distribution == "Ubuntu" and ufw_result.stdout == "active"
