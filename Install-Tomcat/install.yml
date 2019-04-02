@@ -50,7 +50,7 @@
 
   - name: 3. Download & Unarchive Tomcat
     unarchive:
-      src: http://ftp.wayne.edu/apache/tomcat/tomcat-9/v9.0.16/bin/apache-tomcat-9.0.16.tar.gz
+      src: http://ftp.wayne.edu/apache/tomcat/tomcat-9/v9.0.17/bin/apache-tomcat-9.0.17.tar.gz
       dest: /opt/tomcat
       remote_src: yes
       extra_opts: [--strip-components=1]
