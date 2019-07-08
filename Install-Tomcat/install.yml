@@ -49,7 +49,7 @@
       home: /opt/tomcat
       shell: /bin/nologin
 
-  - name: 3. Download & Unarchive Tomcat
+  - name: 3. Download & Unarchive Tomcat-{{ tomcat_version }}
     unarchive:
       src: https://archive.apache.org/dist/tomcat/tomcat-{{ tomcat_version.split('.')[0] }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz
       dest: /opt/tomcat
