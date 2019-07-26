@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: no
+  vars:
+    DOCKER_COMPOSE_VER: "1.22.0"
+
+  tasks:
+
+    - name: Install required pkgs
+      yum:
+        name: 
+            - yum-utils
+            - device-mapper-persistent-data
+            - lvm2
+        state: latest
+
+    - name: Add Docker repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Install Docker
+      package:
+        name: docker-ce
+        state: latest
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user lotfi to docker group
+      user:
+        name: lotfi
+        groups: docker
+        append: yes
+ 
+    - name: installation Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/{{ DOCKER_COMPOSE_VER }}/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 0755
